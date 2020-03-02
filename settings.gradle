@@ -1,2 +1,2 @@
-include ':app'
+include ':app', ':mylibrary', ':lib', ':lib_motion_layout'
 rootProject.name='chinwe-experiment'
