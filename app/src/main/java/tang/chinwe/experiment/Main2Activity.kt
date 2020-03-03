@@ -19,7 +19,7 @@ class Main2Activity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main2)
-        val view=HomeSiteGuidanceView(this,Pair(40f,40f))
+        val view=HomeSiteGuidanceView(this,Pair(600f,40f))
         view_parent.addView(view)
         view_parent.postDelayed({view.startGuidance()},1000)
     }

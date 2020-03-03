@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.AnimationSet
+import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 
@@ -64,7 +65,7 @@ class HomeSiteGuidanceView(context: Context?, var corner: Pair<Float, Float>) :
         /**
          * 左上角的点在屏幕左边时动画往右边做
          */
-        corner.first <= screenWidth
+        corner.first <= screenWidth / 2
     }
 
     val siteLeftMargin by lazy {
@@ -124,7 +125,7 @@ class HomeSiteGuidanceView(context: Context?, var corner: Pair<Float, Float>) :
             play(youtubeAnima2()).after(200).after(youtubeAnima2())
         }
         val set2 = AnimatorSet().apply {
-            play(youtubeAnima3()).before(youtubeAnima4())
+            play(youtubeAnima3()).after(200).before(youtubeAnima4())
         }
         AnimatorSet().apply {
             play(set1).after(youtubeAnima1()).before(set2)
@@ -148,7 +149,7 @@ class HomeSiteGuidanceView(context: Context?, var corner: Pair<Float, Float>) :
                         leftMargin = (marginLeft + schedule * if (isLeft) {
                             dp_18
                         } else {
-                            dp_18 - dp_80
+                            -dp_80
                         }).toInt()
                         topMargin = (marginTop + schedule * dp_27).toInt()
                         width = (w + w * schedule).toInt()
@@ -224,6 +225,7 @@ class HomeSiteGuidanceView(context: Context?, var corner: Pair<Float, Float>) :
         var marginLeft = 0
         var marginTop = 0
         return ValueAnimator.ofFloat(1f, 0f).apply {
+            interpolator = LinearInterpolator()
             addListener(object : DefaultAnimatorListener() {
                 override fun onAnimationStart(animation: Animator?) {
                     w = youtubeImageView.width
@@ -234,7 +236,7 @@ class HomeSiteGuidanceView(context: Context?, var corner: Pair<Float, Float>) :
                         (youtubeImageView.layoutParams as FrameLayout.LayoutParams).topMargin
                 }
             })
-            duration = 1000
+            duration = 800
             addUpdateListener {
                 val schedule = it.animatedValue as Float
                 youtubeImageView.apply {
@@ -263,7 +265,7 @@ class HomeSiteGuidanceView(context: Context?, var corner: Pair<Float, Float>) :
             AnimatorSet().apply {
                 play(oneZoom(0.8f)).after(oneZoom(1.3f)).before(oneZoom(1.2f))
             }.start()
-        },allTime - 3 * 2 * scaleTime)
+        }, allTime - 3 * 2 * scaleTime)
     }
 
     /**
