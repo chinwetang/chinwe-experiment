@@ -297,8 +297,8 @@ class HomeSiteGuidanceView(context: Context?, private var corner: IntArray) :
                             (youtubeHorizontalMargin + (marginLeft - youtubeHorizontalMargin) * schedule).toInt()
                         topMargin =
                             (youtubeVerticalMargin + (marginTop - youtubeVerticalMargin) * schedule).toInt()
-                        width = (dp_80 + dp_80 * schedule).toInt()
-                        height = (dp_18 + dp_18 * schedule).toInt()
+                        width = (dp_80 + (w-dp_80) * schedule).toInt()
+                        height = (dp_18 + (h-dp_18) * schedule).toInt()
                     }
                 }
             }
