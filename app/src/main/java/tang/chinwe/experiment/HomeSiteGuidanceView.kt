@@ -1,24 +1,24 @@
-package tang.chinwe.experiment
+package com.nemo.vidmate.ui.youtube.home
 
 import android.animation.Animator
 import android.animation.AnimatorSet
-import android.animation.TypeEvaluator
 import android.animation.ValueAnimator
 import android.content.Context
-import android.view.Gravity
+import android.text.TextUtils
 import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
-import android.view.animation.AccelerateInterpolator
-import android.view.animation.AnimationSet
 import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
+import tang.chinwe.experiment.AndroidUtil
+import tang.chinwe.experiment.DeviceUtil
+import tang.chinwe.experiment.R
 
 /**
  * 首页站点site引导动画
  * corner：首页site的左上角顶点横坐标和纵坐标
  */
-class HomeSiteGuidanceView(context: Context?, var corner: Pair<Float, Float>) :
+class HomeSiteGuidanceView(context: Context?, private var corner: IntArray) :
     FrameLayout(context) {
 
     init {
@@ -27,37 +27,37 @@ class HomeSiteGuidanceView(context: Context?, var corner: Pair<Float, Float>) :
     }
 
 
-    val dp_36 by lazy {
+    private val dp_36 by lazy {
         AndroidUtil.dpToPx(36f, context)
     }
 
-    val dp_9 by lazy {
+    private val dp_9 by lazy {
         AndroidUtil.dpToPx(9f, context)
     }
 
-    val dp_18 by lazy {
+    private val dp_18 by lazy {
         AndroidUtil.dpToPx(18f, context)
     }
 
-    val dp_27 by lazy {
+    private val dp_27 by lazy {
         AndroidUtil.dpToPx(27f, context)
     }
 
-    val dp_80 by lazy {
+    private val dp_80 by lazy {
         AndroidUtil.dpToPx(80f, context)
     }
 
     /**
      * 总动画时长
      */
-    val allTime = 4000L
+    private val allTime = 4000L
 
     /**
      * 一次缩/放时长
      */
-    val scaleTime = 187L
+    private val scaleTime = 120L
 
-    val screenWidth by lazy {
+    private val screenWidth by lazy {
         DeviceUtil.getScreenWidth(context)
     }
 
@@ -65,27 +65,27 @@ class HomeSiteGuidanceView(context: Context?, var corner: Pair<Float, Float>) :
         /**
          * 左上角的点在屏幕左边时动画往右边做
          */
-        corner.first <= screenWidth / 2
+        corner[0] <= screenWidth / 2
     }
 
     val siteLeftMargin by lazy {
-        corner.first.toInt()
+        corner[0].toInt()
     }
 
     val siteTopMargin by lazy {
-        corner.second.toInt()
+        corner[1].toInt()
     }
 
     val youtubeHorizontalMargin by lazy {
         if (isLeft) {
-            corner.first.toInt()
+            corner[0].toInt()
         } else {
-            corner.first.toInt() - (dp_80 - dp_36)
+            corner[0].toInt() - (dp_80 - dp_36)
         }
     }
 
     val youtubeVerticalMargin by lazy {
-        corner.second.toInt() + dp_9
+        corner[1].toInt() + dp_9
     }
 
     val siteImageView by lazy {
@@ -94,6 +94,7 @@ class HomeSiteGuidanceView(context: Context?, var corner: Pair<Float, Float>) :
                 leftMargin = siteLeftMargin
                 topMargin = siteTopMargin
             }
+
             setImageResource(R.mipmap.nav_more)
         }
     }
@@ -104,32 +105,82 @@ class HomeSiteGuidanceView(context: Context?, var corner: Pair<Float, Float>) :
                 topMargin = youtubeVerticalMargin
                 leftMargin = youtubeHorizontalMargin
             }
+            alpha = 0f
             setImageResource(R.mipmap.nav_home_guidance)
         }
     }
 
+    var set: AnimatorSet? = null
+
+    var listener: DefaultAnimatorListener? = null
+
+
+    /**
+     * 取消引导动画
+     */
+    fun cancel() {
+        set?.cancel()
+        (parent as? ViewGroup)?.removeView(this)
+    }
 
     /**
      * 开始引导动画
      */
-    fun startGuidance() {
+    private fun tryAnimator(hasWindowFocus: Boolean) {
+        /**
+         * set 判空，只做一次动画
+         */
+        if (hasWindowFocus && set == null) {
+            set = AnimatorSet().apply {
+                play(siteGuidanceAnimator()).with(youtubeGuidanceAnimator())
+                if (listener != null)
+                    addListener(listener)
+            }
+            set?.start()
+        }
+    }
+
+    fun startGuidance(listener: DefaultAnimatorListener, clickListener: OnClickListener) {
         removeAllViews()
-        startSiteGuidance()
-        startYouTubeGuidance()
+        this.listener = listener
+        siteImageView.setOnClickListener {
+            //            cancel()
+//            clickListener.onClick(it)
+        }
+        youtubeImageView.setOnClickListener {
+            //            cancel()
+//            clickListener.onClick(it)
+        }
+        setOnClickListener {
+            //            cancel()
+        }
+        /**
+         * 如果没有这个权限，说明首页会弹窗提醒，先不做动画
+         */
+        tryAnimator(true)
     }
 
 
-    private fun startYouTubeGuidance() {
+    override fun onWindowFocusChanged(hasWindowFocus: Boolean) {
+        super.onWindowFocusChanged(hasWindowFocus)
+//        tryAnimator(hasWindowFocus)
+    }
+
+
+    private fun youtubeGuidanceAnimator(): AnimatorSet {
         addView(youtubeImageView)
         val set1 = AnimatorSet().apply {
-            play(youtubeAnima2()).after(200).after(youtubeAnima2())
+            play(youtubeAnima2()).after(youtubeAnima2()).after(1200)
         }
         val set2 = AnimatorSet().apply {
-            play(youtubeAnima3()).after(200).before(youtubeAnima4())
+            play(youtubeAnima3()).after(100).before(youtubeAnima4())
         }
-        AnimatorSet().apply {
-            play(set1).after(youtubeAnima1()).before(set2)
-        }.start()
+        val set3 = AnimatorSet().apply {
+            play(youtubeAnima1()).after(200)
+        }
+        return AnimatorSet().apply {
+            play(set1).after(400).after(set3).before(set2)
+        }
     }
 
 
@@ -139,7 +190,7 @@ class HomeSiteGuidanceView(context: Context?, var corner: Pair<Float, Float>) :
         var h = dp_18
         var w = dp_80
         return ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 1000
+            duration = 500
             interpolator = AccelerateDecelerateInterpolator()
             addUpdateListener {
                 val schedule = it.animatedValue as Float
@@ -170,8 +221,8 @@ class HomeSiteGuidanceView(context: Context?, var corner: Pair<Float, Float>) :
                 }
             })
             interpolator = AccelerateDecelerateInterpolator()
-            duration = 200
-            repeatCount = 1
+            duration = 100
+            repeatCount = 3
             repeatMode = ValueAnimator.REVERSE
             addUpdateListener {
                 val schedule = it.animatedValue as Float
@@ -190,7 +241,7 @@ class HomeSiteGuidanceView(context: Context?, var corner: Pair<Float, Float>) :
         var marginLeft = 0
         var marginTop = 0
         return ValueAnimator.ofFloat(0f, 0.2f).apply {
-            duration = 500
+            duration = 100
             addListener(object : DefaultAnimatorListener() {
                 override fun onAnimationStart(animation: Animator?) {
                     w = youtubeImageView.width
@@ -205,7 +256,7 @@ class HomeSiteGuidanceView(context: Context?, var corner: Pair<Float, Float>) :
                 val schedule = it.animatedValue as Float
                 youtubeImageView.apply {
                     layoutParams = (layoutParams as? FrameLayout.LayoutParams)?.apply {
-                        leftMargin = (marginLeft - schedule * 5 * if (isLeft) {
+                        leftMargin = (marginLeft - schedule * if (isLeft) {
                             dp_18
                         } else {
                             -dp_18
@@ -236,7 +287,7 @@ class HomeSiteGuidanceView(context: Context?, var corner: Pair<Float, Float>) :
                         (youtubeImageView.layoutParams as FrameLayout.LayoutParams).topMargin
                 }
             })
-            duration = 800
+            duration = 500
             addUpdateListener {
                 val schedule = it.animatedValue as Float
                 youtubeImageView.apply {
@@ -258,14 +309,14 @@ class HomeSiteGuidanceView(context: Context?, var corner: Pair<Float, Float>) :
     /**
      * site icon 动画
      */
-    private fun startSiteGuidance() {
+    private fun siteGuidanceAnimator(): AnimatorSet {
         addView(siteImageView)
-        oneZoom(1.2f)
-        postDelayed({
-            AnimatorSet().apply {
-                play(oneZoom(0.8f)).after(oneZoom(1.3f)).before(oneZoom(1.2f))
-            }.start()
-        }, allTime - 3 * 2 * scaleTime)
+        val set = AnimatorSet().apply {
+            play(oneZoom(0.8f)).after(oneZoom(1.3f)).before(oneZoom(1.2f))
+        }
+        return AnimatorSet().apply {
+            play(set).after(allTime - 4 * 2 * scaleTime).after(oneZoom(1.2f))
+        }
     }
 
     /**

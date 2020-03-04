@@ -1,27 +1,28 @@
 package tang.chinwe.experiment
 
-import android.annotation.SuppressLint
-import android.content.Intent
-import android.os.Build
+import android.animation.Animator
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.webkit.JavascriptInterface
-import android.webkit.ValueCallback
-import android.webkit.WebView
-import android.widget.Toast
-import androidx.annotation.RequiresApi
+import com.nemo.vidmate.ui.youtube.home.DefaultAnimatorListener
+import com.nemo.vidmate.ui.youtube.home.HomeSiteGuidanceView
 import kotlinx.android.synthetic.main.activity_main2.*
-import org.json.JSONArray
 
 class Main2Activity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main2)
-        val view=HomeSiteGuidanceView(this,Pair(600f,40f))
+        val view= HomeSiteGuidanceView(this, intArrayOf(600,400))
         view_parent.addView(view)
-        view_parent.postDelayed({view.startGuidance()},1000)
+        view_parent.postDelayed({view.startGuidance(object :DefaultAnimatorListener(){
+            override fun onAnimationEnd(animation: Animator?) {
+
+            }
+        }, View.OnClickListener {
+
+        })},1000)
     }
 }
 
